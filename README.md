@@ -136,17 +136,21 @@ Copiar código
 
 ### Subir a API
 ```bash
+# Como rodar
+```bash
 go mod tidy
+DATABASE_URL="postgres://socialmeli:socialmeli@localhost:5432/socialmeli?sslmode=disable" \
 go run ./cmd/api
-API disponível em:
 
-arduino
-Copiar código
-http://localhost:8080
+
+API disponível em: http://localhost:8080
+
+
 🧪 Testes
 bash
-Copiar código
 go test ./... -v
+
+
 O projeto possui testes unitários focados em:
 
 regras de negócio
