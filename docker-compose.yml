@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: socialmeli-db
+    environment:
+      POSTGRES_USER: socialmeli
+      POSTGRES_PASSWORD: socialmeli
+      POSTGRES_DB: socialmeli
+    ports:
+      - "5432:5432"
+    volumes:
+      - socialmeli_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socialmeli -d socialmeli"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  socialmeli_pgdata:

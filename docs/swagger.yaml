@@ -1,0 +1,436 @@
+basePath: /
+definitions:
+  domain.Product:
+    properties:
+      brand:
+        type: string
+      color:
+        type: string
+      notes:
+        type: string
+      product_id:
+        type: integer
+      product_name:
+        type: string
+      type:
+        type: string
+    type: object
+  http.FollowedListResponse:
+    properties:
+      followed:
+        items:
+          $ref: '#/definitions/http.SimpleUser'
+        type: array
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  http.FollowedPostsResponse:
+    properties:
+      posts: {}
+      user_id:
+        type: integer
+    type: object
+  http.FollowersCountResponse:
+    properties:
+      followersCount:
+        type: integer
+      userId:
+        type: integer
+      userName:
+        type: string
+    type: object
+  http.FollowersListResponse:
+    properties:
+      followers:
+        items:
+          $ref: '#/definitions/http.SimpleUser'
+        type: array
+      userId:
+        type: integer
+      userName:
+        type: string
+    type: object
+  http.PromoCountResponse:
+    properties:
+      promo_products_count:
+        type: integer
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  http.PromoListResponse:
+    properties:
+      posts: {}
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  http.PublishResponse:
+    properties:
+      post_id:
+        type: integer
+    type: object
+  http.SimpleUser:
+    properties:
+      user_id:
+        type: integer
+      user_name:
+        type: string
+      userId:
+        type: integer
+      userName:
+        type: string
+    type: object
+  service.PublishPayload:
+    description: Payload para publicar um produto ou produto em promoção
+    properties:
+      category:
+        example: 1
+        type: integer
+      date:
+        description: 'Formato: dd-MM-yyyy'
+        example: 15-01-2024
+        type: string
+      discount:
+        example: 0
+        type: number
+      has_promo:
+        example: false
+        type: boolean
+      price:
+        example: 100.5
+        type: number
+      product:
+        $ref: '#/definitions/domain.Product'
+      user_id:
+        example: 234
+        type: integer
+    required:
+    - category
+    - date
+    - price
+    - product
+    - user_id
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: |-
+    API REST para gerenciamento de rede social de vendas (SocialMeli)
+    Implementação completa do desafio SocialMeli em Go, usando Gin + storage em memória.
+
+    Funcionalidades:
+    - Gerenciamento de relacionamentos entre usuários (seguir/deixar de seguir)
+    - Publicação de produtos e produtos em promoção
+    - Listagem de posts de vendedores seguidos
+    - Contagem e listagem de produtos em promoção
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: SocialMeli API
+  version: "1.0"
+paths:
+  /products/followed/{userId}/list:
+    get:
+      description: Retorna produtos publicados nos últimos 14 dias pelos usuários
+        seguidos
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Ordenação
+        enum:
+        - date_asc
+        - date_desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.FollowedPostsResponse'
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista produtos dos usuários seguidos
+      tags:
+      - products
+  /products/promo-pub:
+    post:
+      consumes:
+      - application/json
+      description: Publica um produto com promoção
+      parameters:
+      - description: Dados do produto em promoção
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/service.PublishPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PublishResponse'
+        "400":
+          description: JSON inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Publica um produto em promoção
+      tags:
+      - products
+  /products/promo-pub/count:
+    get:
+      description: Retorna a quantidade de produtos em promoção de um usuário
+      parameters:
+      - description: ID do usuário
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PromoCountResponse'
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Conta produtos em promoção
+      tags:
+      - products
+  /products/promo-pub/list:
+    get:
+      description: Retorna a lista de produtos em promoção de um usuário
+      parameters:
+      - description: ID do usuário
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PromoListResponse'
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista produtos em promoção
+      tags:
+      - products
+  /products/publish:
+    post:
+      consumes:
+      - application/json
+      description: Publica um produto sem promoção (HasPromo=false e Discount=0)
+      parameters:
+      - description: Dados do produto
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/service.PublishPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PublishResponse'
+        "400":
+          description: JSON inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Publica um novo produto
+      tags:
+      - products
+  /users/{userId}/follow/{userIdToFollow}:
+    post:
+      description: Um usuário (userId) passa a seguir outro usuário (userIdToFollow)
+      parameters:
+      - description: ID do usuário que vai seguir
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: ID do usuário a ser seguido
+        in: path
+        name: userIdToFollow
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Parâmetros inválidos ou regra de negócio
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Seguir um usuário
+      tags:
+      - users
+  /users/{userId}/followed/list:
+    get:
+      description: Retorna a lista de usuários que um userId segue. Pode ordenar por
+        nome.
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Ordenação por nome
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.FollowedListResponse'
+        "400":
+          description: Parâmetro inválido, order inválida ou usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar seguidos
+      tags:
+      - users
+  /users/{userId}/followers/count:
+    get:
+      description: Retorna a quantidade de seguidores de um usuário (seller)
+      parameters:
+      - description: ID do usuário (seller)
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.FollowersCountResponse'
+        "400":
+          description: Parâmetro inválido ou usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Contar seguidores
+      tags:
+      - users
+  /users/{userId}/followers/list:
+    get:
+      description: Retorna a lista de seguidores de um usuário. Pode ordenar por nome.
+      parameters:
+      - description: ID do usuário (seller)
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Ordenação por nome
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.FollowersListResponse'
+        "400":
+          description: Parâmetro inválido, order inválida ou usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Listar seguidores
+      tags:
+      - users
+  /users/{userId}/unfollow/{userIdToUnfollow}:
+    post:
+      description: Um usuário (userId) deixa de seguir outro usuário (userIdToUnfollow)
+      parameters:
+      - description: ID do usuário que vai deixar de seguir
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: ID do usuário a deixar de seguir
+        in: path
+        name: userIdToUnfollow
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Parâmetros inválidos ou regra de negócio
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deixar de seguir um usuário
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"
